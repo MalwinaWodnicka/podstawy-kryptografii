@@ -5,6 +5,7 @@ import Model.DESX;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Random;
@@ -136,12 +137,89 @@ public class GUI extends JFrame {
     }
 
     private String generateRandomHexKey() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder(16);
-        for (int i = 0; i < 16; i++) {
-            sb.append(Integer.toHexString(random.nextInt(16)));
+        // Generujemy 64-bitową liczbę pierwszą
+        BigInteger prime = generate64BitPrime();
+        // Konwertujemy do hex (16 znaków, bo 64 bity = 8 bajtów = 16 znaków hex)
+        String hex = prime.toString(16).toUpperCase();
+
+        // Upewniamy się, że ma dokładnie 16 znaków (może mieć mniej jeśli pierwsze cyfry są zerami)
+        while (hex.length() < 16) {
+            hex = "0" + hex;
         }
-        return sb.toString().toUpperCase();
+
+        return hex.substring(0, 16); // Na wypadek gdyby była dłuższa
+    }
+
+    private BigInteger generate64BitPrime() {
+        Random rand = new Random();
+        BigInteger prime;
+
+        // Generujemy liczby aż znajdziemy pierwszą
+        do {
+            // Generujemy 64-bitową liczbę (długość w bitach, certainty=10 dla testu Millera-Rabina)
+            prime = new BigInteger(64, 10, rand);
+        } while (!isPrime(prime)); // Dodatkowe sprawdzenie (choć BigInteger z certainty=10 już powinno być pierwsze)
+
+        return prime;
+    }
+
+    private boolean isPrime(BigInteger n) {
+        // Implementacja testu Millera-Rabina
+        if (n.compareTo(BigInteger.ONE) <= 0) {
+            return false;
+        }
+        if (n.compareTo(BigInteger.valueOf(3)) <= 0) {
+            return true;
+        }
+        if (n.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+            return false;
+        }
+
+        // Zapisz n-1 jako d*2^s
+        BigInteger d = n.subtract(BigInteger.ONE);
+        int s = 0;
+        while (d.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+            d = d.divide(BigInteger.TWO);
+            s++;
+        }
+
+        // Testujemy dla kilku podstaw (a) - tutaj 5 iteracji dla pewności
+        for (int i = 0; i < 5; i++) {
+            BigInteger a = randomBigInteger(BigInteger.TWO, n.subtract(BigInteger.TWO));
+            BigInteger x = a.modPow(d, n);
+
+            if (x.equals(BigInteger.ONE) || x.equals(n.subtract(BigInteger.ONE))) {
+                continue;
+            }
+
+            boolean composite = true;
+            for (int j = 0; j < s - 1; j++) {
+                x = x.modPow(BigInteger.TWO, n);
+                if (x.equals(n.subtract(BigInteger.ONE))) {
+                    composite = false;
+                    break;
+                }
+            }
+
+            if (composite) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private BigInteger randomBigInteger(BigInteger min, BigInteger max) {
+        Random rand = new Random();
+        BigInteger range = max.subtract(min);
+        int length = max.bitLength();
+        BigInteger result;
+
+        do {
+            result = new BigInteger(length, rand);
+        } while (result.compareTo(range) >= 0);
+
+        return result.add(min);
     }
 
     private byte[] getKeyFromField(JTextField field) throws IllegalArgumentException {

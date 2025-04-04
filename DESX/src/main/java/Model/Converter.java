@@ -49,13 +49,4 @@ public class Converter {
 
         return result;
     }
-
-    public static byte[] countBytes(byte[] bytes, int index, int count) {
-        byte[] temp = new byte[count];
-        for (int i = 0; i < count; i++) {
-            temp[i] = bytes[index];
-            index++;
-        }
-        return temp;
-    }
 }
