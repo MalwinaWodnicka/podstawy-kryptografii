@@ -3,34 +3,22 @@ package Model;
 public class Converter {
     //Konwertowanie tablicy bajtów na tablicę 64 bitów
     public static byte[] byteTo64Bit(byte[] bytes) {
-        int iteracje = 0;
+        byte[] paddedBytes = new byte[8];
+        System.arraycopy(bytes, 0, paddedBytes, 0, Math.min(bytes.length, 8));
+
+        for (int i = bytes.length; i < 8; i++) {
+            paddedBytes[i] = 0;
+        }
+
         byte[] tab64 = new byte[64];
+        int iteracje = 0;
 
         for (int i = 0; i < 8; i++) {
-            int number = bytes[i];
+            int number = paddedBytes[i] & 0xFF;
             byte[] bits8 = new byte[8];
 
-            if (number >= 0) {
-                for (int j = 7; j >= 0; j--) {
-                    bits8[j] = (byte) (number % 2 == 1 ? 1 : 0);
-                    number = number / 2;
-                }
-            } else {
-                number = -number;
-                for (int j = 7; j >= 0; j--) {
-                    bits8[j] = (byte) (number % 2 == 1 ? 1 : 0);
-                    number = number / 2;
-                }
-                for (int j = 0; j < 8; j++) {
-                    bits8[j] ^= 1;
-                }
-                for (int j = 7; j >= 0; j--) {
-                    if (bits8[j] == 0) {
-                        bits8[j] = 1;
-                        break;
-                    }
-                    bits8[j] = 0;
-                }
+            for (int j = 7; j >= 0; j--) {
+                bits8[j] = (byte) ((number >> (7 - j)) & 1);
             }
 
             for (int j = 0; j < 8; j++) {
@@ -38,5 +26,42 @@ public class Converter {
             }
         }
         return tab64;
+    }
+
+    public static byte[] byteTo4Bit(byte number){
+        byte[] byteTable = new byte[4];
+        byte temp;
+        for (int i=0; i<4; i++){
+            byteTable[i] = (byte) (number%2);
+            number = (byte) (number/2);
+        }
+        for(int i=0; i < 2; i++){
+            temp = byteTable[i];
+            byteTable[i] = byteTable[3 - i];
+            byteTable[3-1] = temp;
+        }
+        return byteTable;
+    }
+
+    public static byte[] bitTobyte(byte[] bits) {
+        byte[] result = new byte[8];
+        int bitIndex = 0;
+
+        for (int bytePos = 0; bytePos < 8; bytePos++) {
+            byte value = 0;
+            int mask = 0x80;
+
+            for (int bitInByte = 0; bitInByte < 8; bitInByte++) {
+                if (bits[bitIndex] == 1) {
+                    value |= (byte) mask;
+                }
+                bitIndex++;
+                mask >>>= 1;
+            }
+
+            result[bytePos] = value;
+        }
+
+        return result;
     }
 }
