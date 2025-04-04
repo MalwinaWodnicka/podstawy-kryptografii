@@ -1,7 +1,6 @@
 package ModelTests;
 
 import Model.DESX;
-import Model.FileManager;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -9,9 +8,6 @@ import java.util.Arrays;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
-
-import org.junit.Assert.*;
 
 import static org.junit.Assert.assertArrayEquals;
 
