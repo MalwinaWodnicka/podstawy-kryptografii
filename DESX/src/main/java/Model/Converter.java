@@ -28,21 +28,6 @@ public class Converter {
         return tab64;
     }
 
-    public static byte[] byteTo4Bit(byte number){
-        byte[] byteTable = new byte[4];
-        byte temp;
-        for (int i=0; i<4; i++){
-            byteTable[i] = (byte) (number%2);
-            number = (byte) (number/2);
-        }
-        for(int i=0; i < 2; i++){
-            temp = byteTable[i];
-            byteTable[i] = byteTable[3 - i];
-            byteTable[3-1] = temp;
-        }
-        return byteTable;
-    }
-
     public static byte[] bitTobyte(byte[] bits) {
         byte[] result = new byte[8];
         int bitIndex = 0;

@@ -32,30 +32,30 @@ public class DES {
         byte[] data64 = new byte[64];
 
         for (int i = 0; i < 16; i++) {
-            System.out.println("=== Runda " + (i + 1) + " ===");
-            System.out.println("Wejściowa prawa strona: " + Arrays.toString(right));
-            System.out.println("Podklucz: " + Arrays.toString(subkeys[i]));
+            //System.out.println("Runda " + (i + 1));
+            //System.out.println("Wejściowa prawa strona: " + Arrays.toString(right));
+            //System.out.println("Podklucz: " + Arrays.toString(subkeys[i]));
             //7b: Expansion Permutation (rozszerzenie bloku 32 bitowego na 48 bitowy)
             data48 = Functions.Permutation(Tables.E,right,48);
-            System.out.println("Po rozszerzeniu (E): " + Arrays.toString(data48));
+            //System.out.println("Po rozszerzeniu (E): " + Arrays.toString(data48));
             byte[] subkey = subkeys[i];
             //7c: Operacja XOR na podkluczach i rozszerzonej prawej części danych
             data48 = Functions.XOR(data48,subkey);
-            System.out.println("Po XOR z podkluczem: " + Arrays.toString(data48));
+            //System.out.println("Po XOR z podkluczem: " + Arrays.toString(data48));
             //7d: Przetworzenie 8 grup 6 bitowych przez S-Boxy
             data48 = Functions.sBoxTransformation(data48);
-            System.out.println("Po S-Boxach: " + Arrays.toString(data48));
+            //System.out.println("Po S-Boxach: " + Arrays.toString(data48));
             //7e: Permutation Function, permutacja 32-bitowego otputu
             data48 = Functions.Permutation(Tables.P, data48,32);
-            System.out.println("Po permutacji P: " + Arrays.toString(data48));
+            //System.out.println("Po permutacji P: " + Arrays.toString(data48));
             //7f: XOR na lewej stronie i funkcji f
             data48 = Functions.XOR(left,data48);
-            System.out.println("Po XOR z lewą stroną: " + Arrays.toString(data48));
+            //System.out.println("Po XOR z lewą stroną: " + Arrays.toString(data48));
             //7g: Zamiana stronami
             left = right;
             right = data48;
-            System.out.println("Nowa lewa: " + Arrays.toString(left));
-            System.out.println("Nowa prawa: " + Arrays.toString(right));
+            //System.out.println("Nowa lewa: " + Arrays.toString(left));
+            //System.out.println("Nowa prawa: " + Arrays.toString(right));
         }
 
         System.arraycopy(right, 0, data64, 0, 32);
