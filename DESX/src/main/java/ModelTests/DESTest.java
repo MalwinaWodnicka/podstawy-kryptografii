@@ -15,7 +15,7 @@ public class DESTest {
     }
 
     @Test
-    public void testEncryptWithKnownVector() {
+    public void testEncrypt() {
         byte[] plaintext = hexToBytes("0123456789ABCDEF");
         byte[] key = hexToBytes("0123456789ABCDEF");
         byte[] expectedCiphertext = hexToBytes("56CC09E7CFDC4CEF");
@@ -25,6 +25,20 @@ public class DESTest {
 
         assertArrayEquals("Ciphertext powinien zgadzać się z wektorem testowym",
                 expectedCiphertext, ciphertext);
+    }
+
+    @Test
+    public void testDecrypt() {
+        // Given
+        byte[] ciphertext = hexToBytes("56CC09E7CFDC4CEF");
+        byte[] key = hexToBytes("0123456789ABCDEF");
+        byte[] expectedPlaintext = hexToBytes("0123456789ABCDEF");
+
+        DES des = new DES();
+        byte[] decrypted = des.decrypt(ciphertext, key);
+
+        assertArrayEquals("Odszyfrowany tekst powinien zgadzać się z wektorem testowym",
+                expectedPlaintext, decrypted);
     }
 
     @Test

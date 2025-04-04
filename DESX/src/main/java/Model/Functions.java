@@ -45,4 +45,15 @@ public class Functions {
         return result;
     }
 
+    public static byte[] padData(byte[] data) {
+        int padLength = 8 - (data.length % 8);
+        byte[] padded = new byte[data.length + padLength];
+        System.arraycopy(data, 0, padded, 0, data.length);
+
+        for (int i = data.length; i < padded.length; i++) {
+            padded[i] = (byte) padLength;
+        }
+
+        return padded;
+    }
 }

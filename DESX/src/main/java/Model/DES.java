@@ -3,19 +3,21 @@ package Model;
 import java.util.Arrays;
 
 public class DES {
+    private Data data;
+    private Key key;
 
     public byte[] encrypt(byte[] byteData, byte[] byteKey) {
         if (byteKey.length != 8) {
             throw new IllegalArgumentException("Key must be exactly 8 bytes (64 bits)");
         }
 
-        byte[] paddedData = padData(byteData);
+        byte[] paddedData = Functions.padData(byteData);
 
         //1: Konwersja danych i klucza na tablicę 64-bitową
         byte[] binaryData = Converter.byteTo64Bit(paddedData);
         byte[] binaryKey64 = Converter.byteTo64Bit(byteKey);
 
-        Key key = new Key(binaryKey64);
+        key = new Key(binaryKey64);
         byte[][] subkeys = key.Subkey();
 
 //        System.out.println("Binary Data: " + Arrays.toString(binaryData));
@@ -23,7 +25,7 @@ public class DES {
 //        for (int i = 0; i < 16; i++) {
 //        System.out.println("Subkey: " + Arrays.toString(subkeys[i]));}
 
-        Data data = new Data(binaryData);
+        data = new Data(binaryData);
         //7a: Podział danych na dwie połowy
         byte[] left = data.getLeft();
         byte[] right = data.getRight();
@@ -68,16 +70,39 @@ public class DES {
         return Converter.bitTobyte(data64);
     }
 
-    private byte[] padData(byte[] data) {
-        int padLength = 8 - (data.length % 8);
-        byte[] padded = new byte[data.length + padLength];
-        System.arraycopy(data, 0, padded, 0, data.length);
+    public byte[] decrypt(byte[] byteText, byte[] byteKey) {
+        byte[] binaryData = Converter.byteTo64Bit(byteText);
+        byte[] binaryKey = Converter.byteTo64Bit(byteKey);
 
-        for (int i = data.length; i < padded.length; i++) {
-            padded[i] = (byte) padLength;
+        key = new Key(binaryKey);
+        byte[][] keys = key.Subkey();
+        data = new Data(binaryData);
+
+        byte[] left = data.getLeft();
+        byte[] right = data.getRight();
+
+        byte[] data48 = new byte[48];
+        byte[] data64 = new byte[64];
+
+        for (int i = 15; i >= 0; i--) {
+            data48 = Functions.Permutation(Tables.E,right,48);
+            byte[] key = keys[i];
+
+            data48 = Functions.XOR(data48,key);
+            data48 = Functions.sBoxTransformation(data48);
+            data48 = Functions.Permutation(Tables.P, data48,32);
+            data48 = Functions.XOR(left,data48);
+
+            left = right;
+            right = data48;
         }
 
-        return padded;
+        System.arraycopy(right, 0, data64, 0, 32);
+        System.arraycopy(left, 0, data64, 32, 32);
+
+        data64 = Functions.Permutation(Tables.IP1,data64,64);
+
+        return Converter.bitTobyte(data64);
     }
 
 };
