@@ -10,7 +10,7 @@ public class FileManager {
     private static final int METADATA_FIELDS = 5; // filename,extension,key1,key2,key3
 
     public FileManager() {
-        this.filePath = Paths.get("src/main/java/project/Model/metadata.txt");
+        this.filePath = Paths.get("metadata.txt");
         initializeFile();
     }
 

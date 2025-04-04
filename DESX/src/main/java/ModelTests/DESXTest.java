@@ -1,11 +1,19 @@
 package ModelTests;
 
 import Model.DESX;
+import Model.FileManager;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
+
+import org.junit.Assert.*;
+
+import static org.junit.Assert.assertArrayEquals;
 
 public class DESXTest {
 
@@ -26,5 +34,18 @@ public class DESXTest {
             System.out.println("Odszyfrowany tekst: " + Arrays.toString(decrypted));
             System.out.println("Odszyfrowanie poprawne? " + Arrays.equals(plainText, decrypted));
     }
+
+    private static final String TEST_FILE = "1.jpg";
+    private static final byte[] TEST_KEY = "12345678".getBytes();
+
+    @Test
+    public void testFullEncryptionDecryptionCycle() throws IOException {
+        byte[] originalBytes = Files.readAllBytes(Paths.get(TEST_FILE));
+        DESX desx = new DESX();
+        byte[] encrypted = desx.encrypt(originalBytes, TEST_KEY, TEST_KEY, TEST_KEY);
+        byte[] decrypted = desx.decrypt(encrypted, TEST_KEY, TEST_KEY, TEST_KEY);
+        assertArrayEquals(originalBytes, decrypted);
+    }
 }
+
 
