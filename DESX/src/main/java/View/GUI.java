@@ -7,6 +7,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Random;
 
 public class GUI extends JFrame {
 
@@ -44,10 +45,7 @@ public class GUI extends JFrame {
         JButton saveKeysButton = new JButton("Save Keys");
         JButton loadKeysButton = new JButton("Load Keys");
 
-        JPanel keyButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        keyButtonPanel.add(generateKeysButton);
-        keyButtonPanel.add(saveKeysButton);
-        keyButtonPanel.add(loadKeysButton);
+        generateKeysButton.setToolTipText("Generate new random keys for all fields");
 
         JPanel centerPanel = new JPanel(new GridLayout(2, 1, 5, 5));
         plainTextArea = new JTextArea(8, 40);
@@ -62,15 +60,18 @@ public class GUI extends JFrame {
         JButton decryptButton = new JButton("Decrypt");
         JButton encryptFileButton = new JButton("Encrypt File");
         JButton decryptFileButton = new JButton("Decrypt File");
+        bottomPanel.add(generateKeysButton);
         bottomPanel.add(encryptButton);
         bottomPanel.add(decryptButton);
         bottomPanel.add(encryptFileButton);
         bottomPanel.add(decryptFileButton);
 
+        // Akcja dla przycisku generowania kluczy
         generateKeysButton.addActionListener(e -> {
-            keyInternalField.setText(generateRandomKey());
-            keyDesField.setText(generateRandomKey());
-            keyExternalField.setText(generateRandomKey());
+            keyInternalField.setText(generateRandomHexKey());
+            keyDesField.setText(generateRandomHexKey());
+            keyExternalField.setText(generateRandomHexKey());
+            showInfo("New random keys generated successfully");
         });
 
         saveKeysButton.addActionListener(e -> saveKeysToFile());
@@ -125,36 +126,22 @@ public class GUI extends JFrame {
             }
         });
 
-
-        decryptButton.addActionListener(e -> {
-            try {
-                String cipherTextHex = cipherTextArea.getText().trim();
-                if (cipherTextHex.isEmpty()) {
-                    showError("Cipher text cannot be empty!");
-                    return;
-                }
-
-                byte[] keyInternal = getKeyFromField(keyInternalField);
-                byte[] keyDes = getKeyFromField(keyDesField);
-                byte[] keyExternal = getKeyFromField(keyExternalField);
-
-                byte[] cipherBytes = hexStringToByteArray(cipherTextHex);
-                DESX desx = new DESX();
-                byte[] decrypted = desx.decrypt(cipherBytes, keyInternal, keyDes, keyExternal);
-                plainTextArea.setText(new String(decrypted));
-            } catch (Exception ex) {
-                showError("Error during decryption: " + ex.getMessage());
-            }
-        });
-
         encryptFileButton.addActionListener(e -> handleFileOperation(true));
         decryptFileButton.addActionListener(e -> handleFileOperation(false));
 
         setLayout(new BorderLayout(5, 5));
         add(topPanel, BorderLayout.NORTH);
-        add(keyButtonPanel, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    private String generateRandomHexKey() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(16);
+        for (int i = 0; i < 16; i++) {
+            sb.append(Integer.toHexString(random.nextInt(16)));
+        }
+        return sb.toString().toUpperCase();
     }
 
     private byte[] getKeyFromField(JTextField field) throws IllegalArgumentException {
@@ -167,13 +154,6 @@ public class GUI extends JFrame {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid hex key format");
         }
-    }
-
-    private String generateRandomKey() {
-        // Generuje 8-bajtowy (64-bitowy) klucz jako 16 znaków hex
-        byte[] key = new byte[8];
-        new java.util.Random().nextBytes(key);
-        return byteArrayToHexString(key);
     }
 
     private void saveKeysToFile() {
