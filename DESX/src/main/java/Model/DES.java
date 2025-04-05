@@ -75,7 +75,7 @@ public class DES {
         byte[] binaryKey = Converter.byteTo64Bit(byteKey);
 
         key = new Key(binaryKey);
-        byte[][] keys = key.Subkey();
+        byte[][] subkeys = key.Subkey();
         data = new Data(binaryData);
 
         byte[] left = data.getLeft();
@@ -86,9 +86,9 @@ public class DES {
 
         for (int i = 15; i >= 0; i--) {
             data48 = Functions.Permutation(Tables.E,right,48);
-            byte[] key = keys[i];
+            byte[] subkey = subkeys[i];
 
-            data48 = Functions.XOR(data48,key);
+            data48 = Functions.XOR(data48,subkey);
             data48 = Functions.sBoxTransformation(data48);
             data48 = Functions.Permutation(Tables.P, data48,32);
             data48 = Functions.XOR(left,data48);

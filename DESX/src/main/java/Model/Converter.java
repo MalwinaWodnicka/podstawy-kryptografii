@@ -3,18 +3,18 @@ package Model;
 public class Converter {
     //Konwertowanie tablicy bajtów na tablicę 64 bitów
     public static byte[] byteTo64Bit(byte[] bytes) {
-        byte[] paddedBytes = new byte[8];
-        System.arraycopy(bytes, 0, paddedBytes, 0, Math.min(bytes.length, 8));
+        byte[] byteTable = new byte[8];
+        System.arraycopy(bytes, 0, byteTable, 0, Math.min(bytes.length, 8));
 
         for (int i = bytes.length; i < 8; i++) {
-            paddedBytes[i] = 0;
+            byteTable[i] = 0;
         }
 
         byte[] tab64 = new byte[64];
         int iteracje = 0;
 
         for (int i = 0; i < 8; i++) {
-            int number = paddedBytes[i] & 0xFF;
+            int number = byteTable[i] & 0xFF;
             byte[] bits8 = new byte[8];
 
             for (int j = 7; j >= 0; j--) {

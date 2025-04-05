@@ -1,5 +1,7 @@
 package Model;
 
+import java.util.Arrays;
+
 public class Functions {
     public static byte[] Permutation(byte[] pattern, byte[] data, int length) {
         byte[] permutedData = new byte[length];
@@ -55,5 +57,12 @@ public class Functions {
         }
 
         return padded;
+    }
+
+    public static byte[] removePadding(byte[] data) {
+        if (data.length == 0) return data;
+        int padLength = data[data.length - 1] & 0xFF;
+        if (padLength > 8) return data;
+        return Arrays.copyOf(data, data.length - padLength);
     }
 }

@@ -10,7 +10,7 @@ public class DESX {
             throw new IllegalArgumentException("All keys must be 8 bytes long");
         }
 
-        byte[] paddedData = padData(plainText);
+        byte[] paddedData = Functions.padData(plainText);
         byte[] finalText = new byte[paddedData.length];
 
         for (int i = 0; i < paddedData.length; i += 8) {
@@ -38,27 +38,12 @@ public class DESX {
             System.arraycopy(tmp, 0, finalText, i, 8);
         }
 
-        return removePadding(finalText);
+        return Functions.removePadding(finalText);
     }
 
     private byte[] getBlock(byte[] data, int offset) {
         byte[] block = new byte[8];
         System.arraycopy(data, offset, block, 0, 8);
         return block;
-    }
-
-    private byte[] padData(byte[] data) {
-        int padLength = 8 - (data.length % 8);
-        byte[] padded = new byte[data.length + padLength];
-        System.arraycopy(data, 0, padded, 0, data.length);
-        Arrays.fill(padded, data.length, padded.length, (byte)padLength);
-        return padded;
-    }
-
-    private byte[] removePadding(byte[] data) {
-        if (data.length == 0) return data;
-        int padLength = data[data.length - 1] & 0xFF;
-        if (padLength > 8) return data;
-        return Arrays.copyOf(data, data.length - padLength);
     }
 }
