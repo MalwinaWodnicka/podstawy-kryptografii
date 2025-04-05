@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -166,12 +167,10 @@ public class GUI extends JFrame {
     }
 
     private String generateRandomKey() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder(16);
-        for (int i = 0; i < 16; i++) {
-            sb.append(Integer.toHexString(random.nextInt(16)));
-        }
-        return sb.toString().toUpperCase();
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] keyBytes = new byte[8]; // 8 bajtów = 64 bity
+        secureRandom.nextBytes(keyBytes);
+        return byteArrayToHexString(keyBytes);
     }
 
     private void handleFileOperation(boolean encrypt) {
