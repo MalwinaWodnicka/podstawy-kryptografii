@@ -53,7 +53,7 @@ public class GUI extends JFrame {
         plainTextArea = new JTextArea(8, 40);
         plainTextArea.setBorder(BorderFactory.createTitledBorder("Plain Text"));
         cipherTextArea = new JTextArea(8, 40);
-        cipherTextArea.setBorder(BorderFactory.createTitledBorder("Cipher Text (hex)"));
+        cipherTextArea.setBorder(BorderFactory.createTitledBorder("Cipher Text"));
         centerPanel.add(new JScrollPane(plainTextArea));
         centerPanel.add(new JScrollPane(cipherTextArea));
 
@@ -86,7 +86,6 @@ public class GUI extends JFrame {
                 byte[] keyDes = getKeyFromField(keyDesField);
                 byte[] keyExternal = getKeyFromField(keyExternalField);
 
-                // Dodaj dopełnienie danych przed szyfrowaniem
                 byte[] paddedData = Functions.padData(plainText.getBytes());
 
                 DESX desx = new DESX();
@@ -114,7 +113,6 @@ public class GUI extends JFrame {
                 DESX desx = new DESX();
                 byte[] decrypted = desx.decrypt(cipherBytes, keyInternal, keyDes, keyExternal);
 
-                // Usuń dopełnienie po odszyfrowaniu
                 byte[] unpadded = Functions.removePadding(decrypted);
                 plainTextArea.setText(new String(unpadded));
             } catch (Exception ex) {
@@ -168,7 +166,7 @@ public class GUI extends JFrame {
 
     private String generateRandomKey() {
         SecureRandom secureRandom = new SecureRandom();
-        byte[] keyBytes = new byte[8]; // 8 bajtów = 64 bity
+        byte[] keyBytes = new byte[8];
         secureRandom.nextBytes(keyBytes);
         return byteArrayToHexString(keyBytes);
     }
