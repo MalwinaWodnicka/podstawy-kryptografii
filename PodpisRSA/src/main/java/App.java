@@ -19,6 +19,9 @@ public class App extends JFrame {
     private JTextField signatureField;
     private JLabel signStatusLabel;
     private JLabel fileStatusLabel;
+    private JTextArea messageArea;
+    private JRadioButton fileSourceRadio;
+    private JRadioButton textSourceRadio;
 
     public App() {
         setTitle("RSA Signature Application");
@@ -77,6 +80,23 @@ public class App extends JFrame {
         mainPanel.add(new JLabel("Signature Status:"));
         signStatusLabel = new JLabel("Not verified");
         mainPanel.add(signStatusLabel);
+
+        //Source Panel
+
+        JPanel sourcePanel = new JPanel(new FlowLayout());
+        fileSourceRadio = new JRadioButton("From File", true);
+        textSourceRadio = new JRadioButton("From Text");
+        ButtonGroup sourceGroup = new ButtonGroup();
+        sourceGroup.add(fileSourceRadio);
+        sourceGroup.add(textSourceRadio);
+        sourcePanel.add(new JLabel("Data source:"));
+        sourcePanel.add(fileSourceRadio);
+        sourcePanel.add(textSourceRadio);
+
+        mainPanel.add(new JLabel("Message:"));
+        messageArea = new JTextArea(5, 20);
+        JScrollPane scrollPane = new JScrollPane(messageArea);
+        mainPanel.add(scrollPane);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new GridLayout(2, 4, 5, 5));
@@ -139,6 +159,7 @@ public class App extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+        add(sourcePanel, BorderLayout.NORTH);
     }
 
     private void setBitSize(int size) {
@@ -165,35 +186,49 @@ public class App extends JFrame {
     }
 
     private void generateSignature() throws Exception {
-        if (file == null) {
-            JOptionPane.showMessageDialog(this, "Please load a file first");
-            return;
+        BigInteger fileBigInteger;
+
+        if (fileSourceRadio.isSelected()) {
+            if (file == null) {
+                JOptionPane.showMessageDialog(this, "Please load a file first");
+                return;
+            }
+            fileBigInteger = hashFile(file);
+        } else {
+            String text = messageArea.getText();
+            if (text.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter some text");
+                return;
+            }
+            fileBigInteger = hashText(text);
         }
 
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] fileBytes = Files.readAllBytes(file.toPath());
-        byte[] hash = md.digest(fileBytes);
-        BigInteger fileBigInteger = new BigInteger(1, hash);
         BigInteger e = new BigInteger(ePrivateField.getText());
         BigInteger n = new BigInteger(nPrivateField.getText());
-
         BigInteger cypher = rsa.CreateCipher(fileBigInteger, e, n);
         signatureField.setText(cypher.toString());
     }
 
     private void verifySignature() throws Exception {
-        if (file == null) {
-            JOptionPane.showMessageDialog(this, "Please load a file first");
-            return;
+        BigInteger fileBigInteger;
+
+        if (fileSourceRadio.isSelected()) {
+            if (file == null) {
+                JOptionPane.showMessageDialog(this, "Please load a file first");
+                return;
+            }
+            fileBigInteger = hashFile(file);
+        } else {
+            String text = messageArea.getText();
+            if (text.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter some text");
+                return;
+            }
+            fileBigInteger = hashText(text);
         }
 
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] fileBytes = Files.readAllBytes(file.toPath());
-        byte[] hash = md.digest(fileBytes);
-        BigInteger fileBigInteger = new BigInteger(1, hash);
         BigInteger d = new BigInteger(dPublicField.getText());
         BigInteger n = new BigInteger(nPublicField.getText());
-
         BigInteger cypher = new BigInteger(signatureField.getText());
         BigInteger decrypted = rsa.Decrypt(cypher, d, n);
 
@@ -203,6 +238,21 @@ public class App extends JFrame {
             signStatusLabel.setText("Signature invalid");
         }
     }
+
+    private BigInteger hashFile(File file) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] fileBytes = Files.readAllBytes(file.toPath());
+        byte[] hash = md.digest(fileBytes);
+        return new BigInteger(1, hash);
+    }
+
+    private BigInteger hashText(String text) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] textBytes = text.getBytes("UTF-8");
+        byte[] hash = md.digest(textBytes);
+        return new BigInteger(1, hash);
+    }
+
 
     private void saveSignature() {
         if (signatureField.getText().isEmpty()) {
