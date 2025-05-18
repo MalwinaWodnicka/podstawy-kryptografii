@@ -6,11 +6,13 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 
 public class App extends JFrame {
     private int bitSize = 512;
     private RSA rsa = new RSA(bitSize);
     private File file = null;
+    private BigInteger k;
 
     private JTextField nPrivateField;
     private JTextField nPublicField;
@@ -174,6 +176,13 @@ public class App extends JFrame {
         ePrivateField.setText(rsa.get_e().toString());
         nPublicField.setText(rsa.get_n().toString());
         dPublicField.setText(rsa.get_d().toString());
+
+        // Generowanie liczby k dla ślepego podpisu
+        SecureRandom random = new SecureRandom();
+        BigInteger n = rsa.get_n();
+        do {
+            k = new BigInteger(n.bitLength(), random);
+        } while (!k.gcd(n).equals(BigInteger.ONE) || k.compareTo(BigInteger.ZERO) <= 0 || k.compareTo(n) >= 0);
     }
 
     private void loadFile() {
@@ -205,8 +214,17 @@ public class App extends JFrame {
 
         BigInteger e = new BigInteger(ePrivateField.getText());
         BigInteger n = new BigInteger(nPrivateField.getText());
-        BigInteger cypher = rsa.CreateCipher(fileBigInteger, e, n);
-        signatureField.setText(cypher.toString());
+
+        // Implementacja ślepego podpisu
+        BigInteger kInv = k.modInverse(n); // k^(-1) mod n
+        BigInteger blinded = fileBigInteger.multiply(k.modPow(e, n)).mod(n); // blinded = m * k^e mod n
+
+        BigInteger g = new BigInteger(dPublicField.getText()); // klucz prywatny do podpisu
+        BigInteger blindedSigned = blinded.modPow(g, n); // podpis zaślepionej wiadomości
+
+        BigInteger signed = blindedSigned.multiply(kInv).mod(n); // zdjęcie zaślepienia
+
+        signatureField.setText(signed.toString());
     }
 
     private void verifySignature() throws Exception {
@@ -227,12 +245,14 @@ public class App extends JFrame {
             fileBigInteger = hashText(text);
         }
 
-        BigInteger d = new BigInteger(dPublicField.getText());
+        BigInteger e = new BigInteger(ePrivateField.getText());
         BigInteger n = new BigInteger(nPublicField.getText());
-        BigInteger cypher = new BigInteger(signatureField.getText());
-        BigInteger decrypted = rsa.Decrypt(cypher, d, n);
+        BigInteger sig = new BigInteger(signatureField.getText());
 
-        if (fileBigInteger.equals(decrypted)) {
+        // Weryfikacja podpisu
+        BigInteger verified = sig.modPow(e, n); // verified = sig^e mod n
+
+        if (fileBigInteger.equals(verified)) {
             signStatusLabel.setText("Signature valid");
         } else {
             signStatusLabel.setText("Signature invalid");
